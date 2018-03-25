@@ -36,6 +36,7 @@ def gradcheck_naive(f, x):
         # to test cost functions with built in randomness later.
         oldval = x[ix]
         x[ix] = oldval + h
+        random.setstate(rndstate)
         fxph,_ = f(x)
         x[ix] = oldval - h
         fxmh,_ = f(x)

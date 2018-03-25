@@ -15,7 +15,9 @@ def normalizeRows(x):
     """
 
     ### YOUR CODE HERE
-    x = x/np.sqrt(np.sum(np.square(x),axis=1,keepdims=True))
+    #x = x/np.sqrt(np.sum(np.square(x),axis=1,keepdims=True))
+    y = np.linalg.norm(x, axis=1, keepdims=True)
+    x /= y
     ### END YOUR CODE
 
     return x
@@ -56,15 +58,16 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     free to reference the code you previously wrote for this
     assignment!
     """
-
-    ### YOUR CODE HERE
-
-    cost = -np.sum(np.log(outputVectors[target],))
-    gradPred = grad = predicted
-    gradPred -= 1
-    ### END YOUR CODE
-
+    cost = -np.log(softmax(outputVectors.dot(predicted))[target])
+    #cost = -np.log(np.exp(outputVectors[target].reshape(-1,1).T.dot(predicted))/np.sum(np.exp(outputVectors.dot(predicted))))
+    #gradPred = -outputVectors[target]+np.sum(np.exp(outputVectors.dot(predicted).reshape(-1,1)*outputVectors)/np.sum(np.exp(outputVectors.dot(predicted))))
+    #grad = np.exp(outputVectors.dot(predicted).reshape(-1,1)*predicted)/np.sum(np.exp(outputVectors.dot(predicted)))
+    gradPred = -outputVectors[target] + np.sum(softmax(outputVectors.dot(predicted)).reshape(-1,1)*outputVectors,0)
+    grad = softmax(outputVectors.dot(predicted)).reshape(-1,1)*predicted
+    grad[target] -= predicted
+    # can not pass gradient check
     return cost, gradPred, grad
+
 
 
 def getNegativeSamples(target, dataset, K):
@@ -98,9 +101,15 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices = [target]
     indices.extend(getNegativeSamples(target, dataset, K))
 
-    ### YOUR CODE HERE
-
-    ### END YOUR CODE
+    grad = np.zeros(outputVectors.shape)
+    target_vec = outputVectors[target]
+    negsample = outputVectors[indices]
+    cost = -np.log(sigmoid(target_vec.T.dot(predicted)))-np.sum(np.log(sigmoid(-negsample.dot(predicted))))
+    gradPred =(sigmoid(target_vec.dot(predicted))-1)*(target_vec)- np.sum((sigmoid(
+        -negsample.dot(predicted))-1).dot(negsample))
+    for i in indices:
+        grad[i] -= (sigmoid(-negsample[i].dot(predicted))-1)*(predicted)
+    grad[target] = (sigmoid(target_vec.dot(predicted))-1)*(predicted)
 
     return cost, gradPred, grad
 
@@ -132,10 +141,12 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     cost = 0.0
     gradIn = np.zeros(inputVectors.shape)
     gradOut = np.zeros(outputVectors.shape)
-
-    ### YOUR CODE HERE
-
-    ### END YOUR CODE
+    predicted = inputVectors[tokens[currentWord]]
+    for i in contextWords:
+        cost1,gradpred,grad = word2vecCostAndGradient(predicted,tokens[i],outputVectors,dataset) # cal a context result and add together
+        cost += cost1
+        gradIn[tokens[currentWord]]+=gradpred
+        gradOut+=grad
 
     return cost, gradIn, gradOut
 
@@ -174,8 +185,8 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
     cost = 0.0
     grad = np.zeros(wordVectors.shape)
     N = wordVectors.shape[0]
-    inputVectors = wordVectors[:N/2,:]
-    outputVectors = wordVectors[N/2:,:]
+    inputVectors = wordVectors[:int(N/2),:]
+    outputVectors = wordVectors[int(N/2):,:]
     for i in range(batchsize):
         C1 = random.randint(1,C)
         centerword, context = dataset.getRandomContext(C1)
@@ -189,8 +200,9 @@ def word2vec_sgd_wrapper(word2vecModel, tokens, wordVectors, dataset, C,
             centerword, C1, context, tokens, inputVectors, outputVectors,
             dataset, word2vecCostAndGradient)
         cost += c / batchsize / denom
-        grad[:N/2, :] += gin / batchsize / denom
-        grad[N/2:, :] += gout / batchsize / denom
+        #print("indice",N/2)
+        grad[:int(N/2), :] += gin / batchsize / denom
+        grad[int(N/2):, :] += gout / batchsize / denom
 
     return cost, grad
 
