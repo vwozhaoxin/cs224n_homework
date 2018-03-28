@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import cPickle as pickle
+import pickle as pickle
 import numpy as np
 import os
 import random
@@ -60,7 +60,7 @@ class StanfordSentiment:
 
                 splitted = line.strip().split()[1:]
                 # Deal with some peculiar encoding issues with this file
-                sentences += [[w.lower().decode("utf-8").encode('latin1') for w in splitted]]
+                sentences += [[w.lower() for w in splitted]]
 
         self._sentences = sentences
         self._sentlengths = np.array([len(s) for s in sentences])
@@ -116,7 +116,7 @@ class StanfordSentiment:
 
         dictionary = dict()
         phrases = 0
-        with open(self.path + "/dictionary.txt", "r") as f:
+        with open(self.path + "/dictionary.txt", "r",encoding="latin1") as f:
             for line in f:
                 line = line.strip()
                 if not line: continue
@@ -124,8 +124,8 @@ class StanfordSentiment:
                 dictionary[splitted[0].lower()] = int(splitted[1])
                 phrases += 1
 
-        labels = [0.0] * phrases
-        with open(self.path + "/sentiment_labels.txt", "r") as f:
+        labels = [0.0] * (phrases+1)
+        with open(self.path + "/sentiment_labels.txt", "r",encoding="latin1") as f:
             first = True
             for line in f:
                 if first:
@@ -139,10 +139,13 @@ class StanfordSentiment:
 
         sent_labels = [0.0] * self.numSentences()
         sentences = self.sentences()
-        for i in xrange(self.numSentences()):
+        for i in range(self.numSentences()):
             sentence = sentences[i]
             full_sent = " ".join(sentence).replace('-lrb-', '(').replace('-rrb-', ')')
-            sent_labels[i] = labels[dictionary[full_sent]]
+            try:
+                sent_labels[i] = labels[dictionary[full_sent]]
+            except KeyError:
+                print(i)
 
         self._sent_labels = sent_labels
         return self._sent_labels
@@ -151,7 +154,7 @@ class StanfordSentiment:
         if hasattr(self, "_split") and self._split:
             return self._split
 
-        split = [[] for i in xrange(3)]
+        split = [[] for i in range(3)]
         with open(self.path + "/datasetSplit.txt", "r") as f:
             first = True
             for line in f:
@@ -203,7 +206,7 @@ class StanfordSentiment:
         samplingFreq = np.zeros((nTokens,))
         self.allSentences()
         i = 0
-        for w in xrange(nTokens):
+        for w in range(nTokens):
             w = self._revtokens[i]
             if w in self._tokenfreq:
                 freq = 1.0 * self._tokenfreq[w]
@@ -220,7 +223,7 @@ class StanfordSentiment:
         self._sampleTable = [0] * self.tablesize
 
         j = 0
-        for i in xrange(self.tablesize):
+        for i in range(self.tablesize):
             while i > samplingFreq[j]:
                 j += 1
             self._sampleTable[i] = j
@@ -235,7 +238,7 @@ class StanfordSentiment:
 
         nTokens = len(self.tokens())
         rejectProb = np.zeros((nTokens,))
-        for i in xrange(nTokens):
+        for i in range(nTokens):
             w = self._revtokens[i]
             freq = 1.0 * self._tokenfreq[w]
             # Reweigh

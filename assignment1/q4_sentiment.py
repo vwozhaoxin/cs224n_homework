@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#-*- coding:utf8-*-
 
 import argparse
 import numpy as np
@@ -49,9 +50,17 @@ def getSentenceFeatures(tokens, wordVectors, sentence):
     sentVector = np.zeros((wordVectors.shape[1],))
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #print(sentence)
+    #word =sentence
+    '''N = len(sentence)
+    for i in range(N):
+        indice = tokens[sentence[i]]
+        #print(wordVectors[indice].shape,sentVector.shape)
+        sentVector+= wordVectors[indice]
     ### END YOUR CODE
-
+    sentVector /= N'''
+    sentenceIndices = [tokens[i] for i in sentence]
+    sentVector = np.mean(wordVectors[sentenceIndices,:], axis=0)
     assert sentVector.shape == (wordVectors.shape[1],)
     return sentVector
 
@@ -63,7 +72,7 @@ def getRegularizationValues():
     """
     values = None   # Assign a list of floats in the block below
     ### YOUR CODE HERE
-    raise NotImplementedError
+    values = [1.0,1e-2,1e-3,1e-1,1e-4,0,1e-8]
     ### END YOUR CODE
     return sorted(values)
 
@@ -89,7 +98,10 @@ def chooseBestModel(results):
     bestResult = None
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    bestResult = results[0]
+    for result in results:
+        if bestResult['dev'] < result['dev']:
+            bestResult = result
     ### END YOUR CODE
 
     return bestResult
@@ -138,10 +150,10 @@ def outputPredictions(dataset, features, labels, clf, filename):
     """ Write the predictions to file """
     pred = clf.predict(features)
     with open(filename, "w") as f:
-        print >> f, "True\tPredicted\tText"
-        for i in xrange(len(dataset)):
-            print >> f, "%d\t%d\t%s" % (
-                labels[i], pred[i], " ".join(dataset[i][0]))
+        print ( "True\tPredicted\tText",file =f)
+        for i in range(len(dataset)):
+            print ("%d\t%d\t%s" % (
+                labels[i], pred[i], " ".join(dataset[i][0])),file=f)
 
 
 def main(args):
@@ -166,7 +178,7 @@ def main(args):
     nTrain = len(trainset)
     trainFeatures = np.zeros((nTrain, dimVectors))
     trainLabels = np.zeros((nTrain,), dtype=np.int32)
-    for i in xrange(nTrain):
+    for i in range(nTrain):
         words, trainLabels[i] = trainset[i]
         trainFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
@@ -175,7 +187,7 @@ def main(args):
     nDev = len(devset)
     devFeatures = np.zeros((nDev, dimVectors))
     devLabels = np.zeros((nDev,), dtype=np.int32)
-    for i in xrange(nDev):
+    for i in range(nDev):
         words, devLabels[i] = devset[i]
         devFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
@@ -184,7 +196,7 @@ def main(args):
     nTest = len(testset)
     testFeatures = np.zeros((nTest, dimVectors))
     testLabels = np.zeros((nTest,), dtype=np.int32)
-    for i in xrange(nTest):
+    for i in range(nTest):
         words, testLabels[i] = testset[i]
         testFeatures[i, :] = getSentenceFeatures(tokens, wordVectors, words)
 
@@ -192,7 +204,7 @@ def main(args):
     results = []
     regValues = getRegularizationValues()
     for reg in regValues:
-        print "Training for reg=%f" % reg
+        print ("Training for reg=%f" % reg)
         # Note: add a very small number to regularization to please the library
         clf = LogisticRegression(C=1.0/(reg + 1e-12))
         clf.fit(trainFeatures, trainLabels)
@@ -200,19 +212,19 @@ def main(args):
         # Test on train set
         pred = clf.predict(trainFeatures)
         trainAccuracy = accuracy(trainLabels, pred)
-        print "Train accuracy (%%): %f" % trainAccuracy
+        print ("Train accuracy (%%): %f" % trainAccuracy)
 
         # Test on dev set
         pred = clf.predict(devFeatures)
         devAccuracy = accuracy(devLabels, pred)
-        print "Dev accuracy (%%): %f" % devAccuracy
+        print ("Dev accuracy (%%): %f" % devAccuracy)
 
         # Test on test set
         # Note: always running on test is poor style. Typically, you should
         # do this only after validation.
         pred = clf.predict(testFeatures)
         testAccuracy = accuracy(testLabels, pred)
-        print "Test accuracy (%%): %f" % testAccuracy
+        print ("Test accuracy (%%): %f" % testAccuracy)
 
         results.append({
             "reg": reg,
@@ -222,20 +234,20 @@ def main(args):
             "test": testAccuracy})
 
     # Print the accuracies
-    print ""
-    print "=== Recap ==="
-    print "Reg\t\tTrain\tDev\tTest"
+    print ("")
+    print ("=== Recap ===")
+    print ("Reg\t\tTrain\tDev\tTest")
     for result in results:
-        print "%.2E\t%.3f\t%.3f\t%.3f" % (
+        print ("%.2E\t%.3f\t%.3f\t%.3f" % (
             result["reg"],
             result["train"],
             result["dev"],
-            result["test"])
-    print ""
+            result["test"]))
+    print ("")
 
     bestResult = chooseBestModel(results)
-    print "Best regularization value: %0.2E" % bestResult["reg"]
-    print "Test accuracy (%%): %f" % bestResult["test"]
+    print ("Best regularization value: %0.2E" % bestResult["reg"])
+    print ("Test accuracy (%%): %f" % bestResult["test"])
 
     # do some error analysis
     if args.pretrained:

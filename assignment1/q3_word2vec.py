@@ -106,10 +106,11 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     negsample = outputVectors[indices]
     cost = -np.log(sigmoid(target_vec.T.dot(predicted)))-np.sum(np.log(sigmoid(-negsample.dot(predicted))))
     gradPred =(sigmoid(target_vec.dot(predicted))-1)*(target_vec)- np.sum((sigmoid(
-        -negsample.dot(predicted))-1).dot(negsample))
+        -negsample.dot(predicted))-1).reshape(-1,1)*negsample)
     for i in indices:
-        grad[i] -= (sigmoid(-negsample[i].dot(predicted))-1)*(predicted)
-    grad[target] = (sigmoid(target_vec.dot(predicted))-1)*(predicted)
+        #print(grad.shape,negsample.shape)
+        grad[i] -= (sigmoid(-outputVectors[i].dot(predicted))-1)*predicted
+    grad[target] = (sigmoid(target_vec.dot(predicted))-1)*predicted
 
     return cost, gradPred, grad
 
@@ -170,6 +171,11 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
 
     ### YOUR CODE HERE
 
+    for i in contextWords:
+        cost1,gradpred,grad = word2vecCostAndGradient(inputVectors[tokens[i]],tokens[currentWord],outputVectors,dataset)
+        cost += cost1
+        gradIn[tokens[i]] += gradpred
+        gradOut += grad
     ### END YOUR CODE
 
     return cost, gradIn, gradOut

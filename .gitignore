@@ -11,3 +11,6 @@ HISTORY.txt
 README.txt
 *.txt
 *.pdf
+*.npy
+*.zip
+assignment1/TEST.py
