@@ -14,3 +14,4 @@ README.txt
 *.npy
 *.zip
 assignment1/TEST.py
+*.conll
