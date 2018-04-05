@@ -15,3 +15,8 @@ README.txt
 *.zip
 assignment1/TEST.py
 *.conll
+assignment2/data/weights/checkpoint
+*.data-00000-of-00001
+assignment2/data/weights/parser.weights.index
+assignment2/data/weights/parser.weights.meta
+assignment2/q2_test.predicted.pkl

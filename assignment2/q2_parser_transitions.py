@@ -19,8 +19,17 @@ class PartialParse(object):
         """
         # The sentence being parsed is kept for bookkeeping purposes. Do not use it in your code.
         self.sentence = sentence
-
-        ### YOUR CODE HERE
+#
+#        ### YOUR CODE HERE
+#        self.stack = self.sentence[::-1]
+#        self.buffer = self.sentence
+#        self.dependencies=[]
+#        for i in range(len(self.sentence)):
+#            self.dependencies.append((self.stack[i],self.buffer[i]))
+#        self.root = ROOT
+        self.dependencies=[]
+        self.stack =['ROOT']
+        self.buffer= self.sentence[:]
         ### END YOUR CODE
 
     def parse_step(self, transition):
@@ -32,6 +41,15 @@ class PartialParse(object):
                         transition.
         """
         ### YOUR CODE HERE
+        if transition =='S':
+            self.stack.append(self.buffer.pop(0))
+        if transition == 'LA':
+            self.dependencies.append((self.stack[-1],self.stack[-2]))
+            self.stack.pop(-2)
+        if transition == 'RA':
+            self.dependencies.append((self.stack[-2],self.stack[-1]))
+            self.stack.pop(-1)
+            
         ### END YOUR CODE
 
     def parse(self, transitions):
@@ -66,8 +84,42 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     ### YOUR CODE HERE
+    partial_parses=[]
+    dependencies =[]
+    for sentence in sentences:
+        partial_parse = PartialParse(sentence)
+        partial_parses.append(partial_parse)
+    #print(batch_size)
+    unfinished_parses =partial_parses.copy()
+    while len(unfinished_parses)!=0:            
+        minibatch = unfinished_parses[:batch_size]
+#           print(len(minbatch))
+        transitions=model.predict(minibatch)
+#        print(type(transitions),type(transitions[0]))
+        for parse, transition in zip(minibatch, transitions):
+#            unfinished_parse[i].parse_step(transitions[i])
+            parse.parse_step(transition)           
+            if len(parse.buffer)==0 and len(parse.stack)==1:
+#                dependency = parse.dependencies
+#                dependencies.append(dependency)    
+                unfinished_parses.remove(parse)
+#        else:            
+#            minbatch = unfinished_parses.copy()
+##            print(len(minbatch),40)
+#            transitions=model.predict(minbatch)
+##        print(type(transitions),type(transitions[0]))
+#            n=len(unfinished_parses)
+#            for i in range(n):
+##            unfinished_parse[i].parse_step(transitions[i])
+#                minbatch[i].parse_step(transitions[i])
+#                if len(minbatch[i].buffer)==0 and len(minbatch[i].stack)==1:
+#                    dependency = minbatch[i].dependencies  #.parse(transitions[i])
+#                    dependencies.append(dependency)    
+#                    del unfinished_parses[i]
+    dependencies = [p.dependencies for p in partial_parses]
+    assert len(partial_parses)==len(dependencies)
+    #print(dependencies)
     ### END YOUR CODE
-
     return dependencies
 
 
@@ -85,7 +137,7 @@ def test_step(name, transition, stack, buf, deps,
         "{:} test resulted in buffer {:}, expected {:}".format(name, buf, ex_buf)
     assert deps == ex_deps, \
         "{:} test resulted in dependency list {:}, expected {:}".format(name, deps, ex_deps)
-    print "{:} test passed!".format(name)
+    print ("{:} test passed!".format(name))
 
 
 def test_parse_step():
@@ -112,7 +164,7 @@ def test_parse():
         "parse test resulted in dependencies {:}, expected {:}".format(dependencies, expected)
     assert tuple(sentence) == ("parse", "this", "sentence"), \
         "parse test failed: the input sentence should not be modified"
-    print "parse test passed!"
+    print ("parse test passed!")
 
 
 class DummyModel(object):
@@ -149,7 +201,7 @@ def test_minibatch_parse():
                       (('only', 'ROOT'), ('only', 'arcs'), ('only', 'left')))
     test_dependencies("minibatch_parse", deps[3],
                       (('again', 'ROOT'), ('again', 'arcs'), ('again', 'left'), ('again', 'only')))
-    print "minibatch_parse test passed!"
+    print ("minibatch_parse test passed!")
 
 if __name__ == '__main__':
     test_parse_step()

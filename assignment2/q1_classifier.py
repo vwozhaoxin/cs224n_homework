@@ -46,8 +46,8 @@ class SoftmaxModel(Model):
             self.labels_placeholder
         """
         ### YOUR CODE HERE
-        self.input_placeholder = tf.placeholder(tf.float32,shape=(64,100))
-        self.labels_palceholder = tf.placeholder(tf.int32,shape=(64,5))
+        self.input_placeholder = tf.placeholder(tf.float32,shape=(Config.batch_size,Config.n_features))
+        self.labels_palceholder = tf.placeholder(tf.int32,shape=(Config.batch_size,Config.n_classes))
         ### END YOUR CODE
 
     def create_feed_dict(self, inputs_batch, labels_batch=None):
@@ -90,11 +90,11 @@ class SoftmaxModel(Model):
                     and biases b with zeros.
 
         Returns:
-            pred: A tensor of shape (batch_size, n_classes)
+            pred: A tensor of shape (batch_size, n_classes) 
         """
         ### YOUR CODE HERE
-        W = tf.Variable(tf.zeros((100,5)))
-        b = tf.Variable(tf.zeros(5))
+        W = tf.Variable(tf.zeros((Config.n_features,Config.n_classes)))
+        b = tf.Variable(tf.zeros(Config.n_classes))
         c=tf.matmul(self.input_placeholder,W)
         pred = softmax(c+b)
         ### END YOUR CODE
