@@ -20,3 +20,11 @@ assignment2/data/weights/checkpoint
 assignment2/data/weights/parser.weights.index
 assignment2/data/weights/parser.weights.meta
 assignment2/q2_test.predicted.pkl
+*.pkl
+assignment3/results/window/20180416_231927/checkpoint
+assignment3/results/window/20180416_231927/model.weights.index
+*.meta
+assignment3/results/window/20180416_232250/checkpoint
+*.index
+assignment3/results/window/20180416_2337/checkpoint
+*.weights

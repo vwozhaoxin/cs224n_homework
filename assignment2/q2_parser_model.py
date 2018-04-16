@@ -112,8 +112,7 @@ class ParserModel(Model):
         
         w = tf.Variable(self.pretrained_embeddings)
         embeddings=tf.nn.embedding_lookup(w,self.input_placeholder)
-        embeddings=tf.reshape(embeddings,[-1,self.config.n_features*self.config.embed_size])
-        
+        embeddings=tf.reshape(embeddings,(-1,self.config.n_features*self.config.embed_size))
         ### END YOUR CODE
         return embeddings
 
