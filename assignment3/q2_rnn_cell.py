@@ -56,13 +56,22 @@ class RNNCell(tf.nn.rnn_cell.RNNCell):
         Returns:
             a pair of the output vector and the new state vector.
         """
+
+        
         scope = scope or type(self).__name__
 
         # It's always a good idea to scope variables in functions lest they
         # be defined elsewhere!
         with tf.variable_scope(scope):
             ### YOUR CODE HERE (~6-10 lines)
-            pass
+#            scope = tf.get_variable('scope',)
+            init=tf.contrib.layers.xavier_initializer()
+            W_h = tf.get_variable('W_h',shape=(self._state_size,self._state_size),initializer=init)
+            W_x = tf.get_variable('W_x',shape=(self.input_size,self._state_size),initializer=init)
+            b = tf.get_variable('b',shape=(self._state_size), initializer=init)
+            #b =tf.constant_initializer
+            h_t = tf.sigmoid(tf.matmul(inputs,W_x)+tf.matmul(state,W_h)+b)
+            new_state = h_t
             ### END YOUR CODE ###
         # For an RNN , the output and state are the same (N.B. this
         # isn't true for an LSTM, though we aren't using one of those in

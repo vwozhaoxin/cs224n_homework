@@ -113,8 +113,9 @@ class NERModel(Model):
 
             ### YOUR CODE HERE (2-3 lines)
             
-            for input_batch,labels_batch in minibatches(train_examples, self.config.batch_size):
-                loss=self.train_on_batch(sess, input_batch, labels_batch)
+            for input_batch in minibatches(train_examples, self.config.batch_size):
+#                print('pl')
+                self.train_on_batch(sess, *input_batch)
 #                print(loss)
             ### END YOUR CODE
 
